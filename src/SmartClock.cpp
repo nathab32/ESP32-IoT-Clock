@@ -386,17 +386,30 @@ void handleLED() {
   switch (effect) {
     case SOLID:
       leds.fill(leds.Color(ledColor.r, ledColor.g, ledColor.b));
+      leds.setBrightness(map(brightness, 0, 100, 0, 255));
       break;
     case GLOWING:
-      leds.setBrightness(map( fabs(sin(millis() / 4000 * 2 * 3.14))   , 0, 1, 0, brightness));
+      {
+        float glow = fabs(sin(millis() / 5000.0 * 2 * 3.14159)); // value between 0 and 1
+        int mappedBrightness = map((int)(glow*1000), 0, 1000, 0, brightness);
+        leds.setBrightness(mappedBrightness);
+        leds.fill(leds.Color(ledColor.r, ledColor.g, ledColor.b));
+      }
       break;
     case ALTERNATING:
-
+      delay(1);
       break;
     case RAINBOW:
       leds.rainbow(map(millis() % 2000, 0, 1999, 0, 65535), 1, ledColor.r, brightness, true);
       break;
   }
+
+  // delay(10);
+  // while (!leds.canShow())
+  // {
+  //   delay(10);
+  // }
+
   leds.show();
 }
 
