@@ -30,7 +30,7 @@
 //GPIO pins
 #define DHT_PIN 26
 #define LED_PIN 13
-#define CAP_0 4   //nominal is 68, pressed is 63 //for controlling external light
+#define CAP_0 4   //for controlling external light
 #define CAP_1 33  //for controlling mode of rgbs
 #define CAP_2 32  //for turning on and off device
 #define TOUCH_THRESHOLD_0 71
@@ -92,7 +92,6 @@ bool onPowerStateLED(const String &deviceId, bool &state) {
     leds.clear();
   } else {
     leds.setBrightness(map(brightness, 0, 100, 0, 255));
-    // leds.fill(leds.getPixelColor(0));
     Serial.print("brightness set to ");
     Serial.println(brightness);
   }
@@ -171,9 +170,6 @@ void setColorWithGamma(int red, int green, int blue) {
   ledColor.r = leds.gamma8(red);
   ledColor.g = leds.gamma8(green);
   ledColor.b = leds.gamma8(blue);
-
-  // Set the corrected color to the pixel
-  // leds.fill(leds.Color(correctedRed, correctedGreen, correctedBlue));
 }
 
 void handleTemperatureSensor() {
@@ -219,13 +215,13 @@ void handleScreen() {
   display.setCursor(0, 0);
   display.setTextSize(1);
 
+  // use this block to test touch sensors and adjust thresholds
   // display.print("CAP_0:");
   // display.println(touchRead(CAP_0));
   // display.print("CAP_1:");
   // display.println(touchRead(CAP_1));
   // display.print("CAP_2:");
   // display.println(touchRead(CAP_2));
-  // display.print(effect);
 
   //temperature
   display.print(temp, 1);
@@ -383,32 +379,46 @@ void handleLED() {
     return;
   }
 
-  switch (effect) {
+  int time = millis();
+
+  switch (effect)
+  {
     case SOLID:
-      leds.fill(leds.Color(ledColor.r, ledColor.g, ledColor.b));
-      leds.setBrightness(map(brightness, 0, 100, 0, 255));
+      {
+        leds.fill(leds.Color(ledColor.r, ledColor.g, ledColor.b));
+        leds.setBrightness(map(brightness, 0, 100, 0, 255));
+      }
       break;
     case GLOWING:
       {
-        float glow = fabs(sin(millis() / 5000.0 * 2 * 3.14159)); // value between 0 and 1
-        int mappedBrightness = map((int)(glow*1000), 0, 1000, 0, brightness);
+        float glow = fabs(sin(time / 6000.0 * 2 * 3.14159));
+        int mappedBrightness = map((int)(glow * 1000), 0, 1000, 0, brightness);
         leds.setBrightness(mappedBrightness);
         leds.fill(leds.Color(ledColor.r, ledColor.g, ledColor.b));
-      }
+      } 
       break;
     case ALTERNATING:
-      delay(1);
+      {
+        for (int i = leds.numPixels(); i > 0; i--) {
+          if (time % 1000 < 500) {
+            if (i % 2 == 0) leds.setPixelColor(i-1, leds.Color(ledColor.r, ledColor.g, ledColor.b));
+            else leds.setPixelColor(i-1, 0, 0, 0);
+          }
+          else {
+            if (i % 2 == 0) leds.setPixelColor(i-1, 0, 0, 0);
+            else leds.setPixelColor(i-1, leds.Color(ledColor.r, ledColor.g, ledColor.b));
+          }
+        }
+      }
       break;
     case RAINBOW:
-      leds.rainbow(map(millis() % 2000, 0, 1999, 0, 65535), 1, ledColor.r, brightness, true);
+      {
+        leds.setBrightness(map(brightness, 0, 100, 0, 255));
+        leds.rainbow(map(time % 2000, 0, 1999, 0, 65535), 1, ledColor.r, brightness, true);
+      }
       break;
-  }
-
-  // delay(10);
-  // while (!leds.canShow())
-  // {
-  //   delay(10);
-  // }
+    
+    }
 
   leds.show();
 }
