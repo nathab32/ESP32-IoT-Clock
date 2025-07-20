@@ -42,7 +42,7 @@ const int led = 2;                 // ESP32 Pin to which onboard LED is connecte
 #define NUM_LEDS 6
 Adafruit_NeoPixel leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 int brightness = 100;
-bool powerStateLED = true;
+bool powerStateLED = false;
 
 struct Color {
   uint8_t r;
@@ -51,20 +51,21 @@ struct Color {
 } ledColor;
 
 enum Effect {
+  OFF,
   SOLID,
   GLOWING,
   ALTERNATING,
   RAINBOW
 };
-Effect effect = SOLID;
+Effect effect = OFF;
 
 //oled display
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
 //time constants
 const char *ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = -28800;
-const int daylightOffset_sec = 3600;
+const long gmtOffset_sec = -28800; //adjust to time zone (-28800 for PST)
+const int daylightOffset_sec = 3600; //adjust for daylight savings time
 
 /* Variable for reading pin status*/
 bool switchState = true;
@@ -280,7 +281,18 @@ void handleTouchSensors() {
 
   //button2, 32, led control
   if (touchRead(CAP_1) < TOUCH_THRESHOLD_1 && millis() - previousPress1 > 500) {
-    effect = static_cast<Effect>(((int)effect + 1) % 4);
+    effect = static_cast<Effect>(((int)effect + 1) % 5);
+
+    if (effect == OFF) {
+      powerStateLED = false;
+      SinricProLight &myLight = SinricPro[LIGHT_ID];
+      myLight.sendPowerStateEvent(powerStateLED);
+    }
+    else if (effect == SOLID) {
+      powerStateLED = true;
+      SinricProLight &myLight = SinricPro[LIGHT_ID];
+      myLight.sendPowerStateEvent(powerStateLED);
+    }
     previousPress1 = millis();  // update last button press variable
   }
 
@@ -288,9 +300,16 @@ void handleTouchSensors() {
   if (touchRead(CAP_2) < TOUCH_THRESHOLD_2) {
     display.clearDisplay();
     display.setCursor(0, 0);
+    display.setTextSize(1);
+    int16_t x1, y1;
+    uint16_t w, h;
+    display.getTextBounds("Sleeping...", 0, 0, &x1, &y1, &w, &h);
+    int16_t x = (display.width() - w) / 2;
+    int16_t y = (display.height() - h) / 2;
+    display.setCursor(x, y);
     display.print("Sleeping...");
     display.display();
-    delay(1000);
+    delay(750);
     esp_deep_sleep_start();
   }
 }
@@ -361,8 +380,7 @@ void setupLED() {
   ledColor.b = 255;
 
   leds.begin();
-  setColorWithGamma(ledColor.r, ledColor.g, ledColor.b);
-  leds.fill(leds.Color(ledColor.r, ledColor.g, ledColor.b));
+  leds.clear();
   leds.show();
   leds.setBrightness(brightness);
 
@@ -459,6 +477,10 @@ void setup() {
       });
 
     ArduinoOTA.begin();
+    for (int i = 0; i < 5000; i += 100) {
+      ArduinoOTA.handle();
+      delay(100);
+    } 
   }
 
   setupSinricPro();
