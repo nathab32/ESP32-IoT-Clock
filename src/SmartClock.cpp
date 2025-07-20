@@ -116,10 +116,18 @@ bool onAdjustBrightness(const String &deviceId, int brightnessDelta) {
   return true;
 }
 
+void setColorWithGamma(int red, int green, int blue) {
+  // Apply gamma correction to each channel
+  ledColor.r = leds.gamma8(red);
+  ledColor.g = leds.gamma8(green);
+  ledColor.b = leds.gamma8(blue);
+}
+
 bool onColor(const String &deviceId, byte &r, byte &g, byte &b) {
-  ledColor.r = r;
-  ledColor.g = g;
-  ledColor.b = b;
+  setColorWithGamma(r, g, b);
+  // ledColor.r = r;
+  // ledColor.g = g;
+  // ledColor.b = b;
   return true;
 }
 
@@ -155,21 +163,13 @@ Color colorToRGB(int temp) {
       if (blue > 255) blue = 255;
     }
   }
-
-  return {static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue)};
+  setColorWithGamma(red, green, blue);
+  return ledColor;
 }
 
 bool onColorTemperature(const String &deviceId, int &colorTemperature) {
-  ledColor = colorToRGB(colorTemperature);  // set rgb values from corresponding colortemperauture
+  colorToRGB(colorTemperature);  // set rgb values from corresponding colortemperauture
   return true;
-}
-
-
-void setColorWithGamma(int red, int green, int blue) {
-  // Apply gamma correction to each channel
-  ledColor.r = leds.gamma8(red);
-  ledColor.g = leds.gamma8(green);
-  ledColor.b = leds.gamma8(blue);
 }
 
 void handleTemperatureSensor() {
