@@ -41,7 +41,7 @@
 const int led = 2;                 // ESP32 Pin to which onboard LED is connected
 #define NUM_LEDS 6
 Adafruit_NeoPixel leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
-int brightness = 100;
+int brightness = 255;
 bool powerStateLED = false;
 
 struct Color {
@@ -92,7 +92,7 @@ bool onPowerStateLED(const String &deviceId, bool &state) {
   if (powerStateLED == false) {
     leds.clear();
   } else {
-    leds.setBrightness(map(brightness, 0, 100, 0, 255));
+    leds.setBrightness(brightness);
     Serial.print("brightness set to ");
     Serial.println(brightness);
   }
@@ -104,16 +104,18 @@ bool onPowerStateTemp(const String &deviceId, bool &state) {
   return true;  // request handled properly
 }
 
-bool onBrightness(const String &deviceId, int &brightness) {
-  leds.setBrightness(map(brightness, 0, 100, 0, 255));
-  leds.show();
+bool onBrightness(const String &deviceId, int &val) {
+  brightness = map(val, 0, 100, 0, 255);
+  // leds.setBrightness(brightness);
+  // leds.show();
   return true;
 }
 
 bool onAdjustBrightness(const String &deviceId, int brightnessDelta) {
-  brightness += brightnessDelta;
-  leds.setBrightness(map(brightness, 0, 100, 0, 255));
-  leds.show();
+  int percent = map(brightness, 0, 255, 0, 100) + brightnessDelta;
+  brightness = map(constrain(percent, 0, 100), 0, 100, 0, 255);
+  // leds.setBrightness(map(brightness, 0, 100, 0, 255));
+  // leds.show();
   return true;
 }
 
@@ -216,13 +218,14 @@ void handleScreen() {
   display.setCursor(0, 0);
   display.setTextSize(1);
 
-  // use this block to test touch sensors and adjust thresholds
+  // debug block
   // display.print("CAP_0:");
   // display.println(touchRead(CAP_0));
   // display.print("CAP_1:");
   // display.println(touchRead(CAP_1));
   // display.print("CAP_2:");
   // display.println(touchRead(CAP_2));
+  // display.print(brightness);
 
   //temperature
   display.print(temp, 1);
@@ -404,7 +407,7 @@ void handleLED() {
     case SOLID:
       {
         leds.fill(leds.Color(ledColor.r, ledColor.g, ledColor.b));
-        leds.setBrightness(map(brightness, 0, 100, 0, 255));
+        leds.setBrightness(brightness);
       }
       break;
     case GLOWING:
@@ -431,13 +434,13 @@ void handleLED() {
       break;
     case RAINBOW:
       {
-        leds.setBrightness(map(brightness, 0, 100, 0, 255));
+        // leds.setBrightness(brightness);
         leds.rainbow(map(time % 2000, 0, 1999, 0, 65535), 1, ledColor.r, brightness, true);
       }
       break;
     
     }
-
+  
   leds.show();
 }
 
