@@ -13,4 +13,5 @@ Smart clock that has temperature/humidity sensor, LCD, RGB LEDs, 3 capacitive bu
 - 2x 10cm long FastLED compatible LED strip
 - 3x 1cm diameter magnets
 - Wiring
-- 3D printed parts
+- 3D printed parts (1x Body and Cap, 4x Foot)
+- 2x M3*6, 4x M2*4
