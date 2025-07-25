@@ -227,35 +227,37 @@ void handleScreen() {
   // display.println(touchRead(CAP_2));
   // display.print(brightness);
 
-  //temperature
-  display.print(temp, 1);
-  display.write(0xF7);
-  display.print("F");
+  {
+    //temperature
+    display.print(temp, 1);
+    display.write(0xF7);
+    display.print("F");
 
-  //version number
-  display.setCursor(49, 0);
-  String version = "v" + String(FIRMWARE_VERSION);
-  display.print(version);
+    //version number
+    display.setCursor(49, 0);
+    String version = "v" + String(FIRMWARE_VERSION);
+    display.print(version);
 
-  //humidity
-  display.setCursor(98, 0);
-  display.print(humidity, 1);
-  display.print("%");
+    //humidity
+    display.setCursor(98, 0);
+    display.print(humidity, 1);
+    display.print("%");
 
-  //line between temp/humid and time
-  display.drawFastHLine(0, 10, 127, SSD1306_WHITE);
+    //line between temp/humid and time
+    display.drawFastHLine(0, 10, 127, SSD1306_WHITE);
 
-  //time
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    Serial.println("Failed to get time");
-  } else {
-    display.setCursor(4, 16);
-    display.setTextSize(2);
-    display.print(&timeinfo, "%a,%b %d");
+    //time
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo)) {
+      Serial.println("Failed to get time");
+    } else {
+      display.setCursor(4, 16);
+      display.setTextSize(2);
+      display.print(&timeinfo, "%a,%b %d");
 
-    display.setCursor(14, 40);
-    display.println(&timeinfo, "%T");
+      display.setCursor(14, 40);
+      display.println(&timeinfo, "%T");
+    }
   }
 
 
@@ -449,7 +451,7 @@ void setup() {
   Serial.begin(BAUD_RATE);
   pinMode(led, OUTPUT);
   setupWiFi();
-  touchSleepWakeUpEnable(CAP_2, TOUCH_THRESHOLD_2);
+  // touchSleepWakeUpEnable(CAP_2, TOUCH_THRESHOLD_2);   // uncomment when threshold is set
 
   //DO NOT CHANGE
   {
