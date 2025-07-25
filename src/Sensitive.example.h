@@ -8,14 +8,14 @@
 
 // Fill with own WiFi credentials
 const String SSID[] = {
-    "xxxxxxxxxxxxxx",
+    "Wifi_1",
     "xxxxxxxxxxxxxx",
     "xxxxxxxxxxxxxx",
     "xxxxxxxxxxxxxx"
 };
 
 const String PASS[] = {
-    "xxxxxxxxxxxxxx",
+    "Password_1",
     "xxxxxxxxxxxxxx",
     "xxxxxxxxxxxxxx",
     "xxxxxxxxxxxxxx"
